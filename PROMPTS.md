@@ -63,3 +63,22 @@ Prompt: Pasted a "failed to push some refs... fetch first" rejection.
 
 Prompt: Asked for a complete AI Usage Log for PROMPTS.md based on this conversation, plus commands to commit the index.html and main.py changes made after the initial commit.
 → Produced this log and the follow-up git commands to commit the remaining frontend and backend changes.
+
+## Deployment
+
+Prompt: Asked whether the project could be deployed on Streamlit Cloud.
+→ Clarified that Streamlit Cloud only hosts apps built with the Streamlit library and cannot expose a custom FastAPI route like the required /api/interview endpoint. Recommended Render instead, with full step-by-step setup: service configuration, build/start commands, and environment variable setup for GROQ_API_KEY.
+
+Prompt: Reported the deployed Render URL returning {"detail":"Not Found"} at the root path.
+→ Explained this was expected FastAPI behavior for an undefined route, not a deployment failure. Added a root ("/") redirect to /static/index.html in main.py so judges landing on the bare URL reach the chat UI automatically.
+
+Prompt: Reported Render not auto-deploying after a GitHub push.
+→ Walked through triggering a manual deploy, verifying the Auto-Deploy setting and branch configuration in Render's dashboard, confirming the push actually reached GitHub, and reconnecting the GitHub–Render webhook if needed.
+
+Prompt: Shared two screenshots comparing an incognito session vs. a normal browser session — noted incognito was slower initially and one session mentioned a specific curriculum day while the other didn't.
+→ Explained the slowdown was Render's free-tier cold start (first request waking a sleeping server), and that the differing day references were expected: two different candidates were tested, each with different completed missions, plus natural LLM response variability at temperature 0.7. Confirmed neither was a bug.
+
+## Final Documentation
+
+Prompt: Asked for a full README.md (using a prior personal project's README as a structural reference) covering the project per the hackathon's evaluation guidelines, plus an updated AI usage log covering everything discussed since the last log entry, and the git commands to commit and push both together.
+→ Produced the final README.md, this additional PROMPTS.md log section, and the closing git commit/push commands.
