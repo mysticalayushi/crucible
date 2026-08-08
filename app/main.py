@@ -7,6 +7,7 @@ from app.llm import call_model
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
+app.mount("/data", StaticFiles(directory="data"), name="data")
 
 @app.post("/api/interview", response_model=InterviewResponse)
 def interview(req: InterviewRequest):

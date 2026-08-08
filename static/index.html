@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Crucible — AI Interview Agent</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, Segoe UI, sans-serif;
+    background: #0f1117;
+    color: #e6e6e6;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  .subtitle { color: #9aa0ac; margin-bottom: 20px; font-size: 0.9rem; }
+  select, button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #1a1d27;
+    color: #e6e6e6;
+    font-size: 0.95rem;
+  }
+  button {
+    background: #4f7cff;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  #setup { display: flex; gap: 10px; margin-bottom: 20px; }
+  #chat {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 300px;
+    margin-bottom: 16px;
+  }
+  .msg {
+    padding: 12px 16px;
+    border-radius: 12px;
+    max-width: 85%;
+    line-height: 1.45;
+    white-space: pre-wrap;
+  }
+  .agent { background: #1a1d27; align-self: flex-start; }
+  .candidate { background: #4f7cff; align-self: flex-end; }
+  #inputRow { display: flex; gap: 10px; }
+  #messageInput {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #1a1d27;
+    color: #e6e6e6;
+    font-size: 0.95rem;
+  }
+  #feedback {
+    margin-top: 24px;
+    padding: 20px;
+    background: #1a1d27;
+    border-radius: 12px;
+    border: 1px solid #333;
+  }
+  #feedback h2 { margin-top: 0; font-size: 1.1rem; }
+  #feedback h3 { font-size: 0.95rem; color: #9aa0ac; margin-bottom: 6px; }
+  #feedback ul { margin-top: 0; padding-left: 20px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<h1>Crucible</h1>
+<div class="subtitle">AI-powered technical interview agent</div>
+
+<div id="setup">
+  <select id="candidateSelect"><option>Loading candidates…</option></select>
+  <button id="startBtn">Start Interview</button>
+</div>
+
+<div id="chat"></div>
+
+<div id="inputRow" class="hidden">
+  <input id="messageInput" type="text" placeholder="Type your answer…" />
+  <button id="sendBtn">Send</button>
+</div>
+
+<div id="feedback" class="hidden"></div>
+
+<script>
+  let sessionId = null;
+  let candidates = [];
+
+  const chat = document.getElementById('chat');
+  const inputRow = document.getElementById('inputRow');
+  const messageInput = document.getElementById('messageInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const startBtn = document.getElementById('startBtn');
+  const candidateSelect = document.getElementById('candidateSelect');
+  const feedbackBox = document.getElementById('feedback');
+
+  function addMessage(text, role) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + role;
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  async function loadCandidates() {
+    const res = await fetch('/data/candidates.json');
+    const data = await res.json();
+    candidates = data.candidates;
+    candidateSelect.innerHTML = candidates
+      .map((c, i) => `<option value="${i}">${c.member.name} — ${c.member.jobRole}</option>`)
+      .join('');
+  }
+
+  async function startInterview() {
+    const idx = candidateSelect.value;
+    const candidate = candidates[idx];
+    sessionId = crypto.randomUUID();
+
+    startBtn.disabled = true;
+    candidateSelect.disabled = true;
+
+    const res = await fetch('/api/interview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, candidate })
+    });
+    const data = await res.json();
+    addMessage(data.reply, 'agent');
+    inputRow.classList.remove('hidden');
+  }
+
+  async function sendMessage() {
+    const message = messageInput.value.trim();
+    if (!message) return;
+    addMessage(message, 'candidate');
+    messageInput.value = '';
+    sendBtn.disabled = true;
+
+    const res = await fetch('/api/interview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, message })
+    });
+    const data = await res.json();
+    addMessage(data.reply, 'agent');
+
+    if (data.done) {
+      inputRow.classList.add('hidden');
+      showFeedback(data.feedback);
+    }
+    sendBtn.disabled = false;
+  }
+
+  function showFeedback(fb) {
+    if (!fb) return;
+    feedbackBox.classList.remove('hidden');
+    feedbackBox.innerHTML = `
+      <h2>Interview Feedback</h2>
+      <p>${fb.summary}</p>
+      <h3>Strengths</h3>
+      <ul>${fb.strengths.map(s => `<li>${s}</li>`).join('')}</ul>
+      <h3>Gaps</h3>
+      <ul>${fb.gaps.map(g => `<li>${g}</li>`).join('')}</ul>
+      <h3>Next Steps</h3>
+      <ul>${fb.next.map(n => `<li>${n}</li>`).join('')}</ul>
+    `;
+  }
+
+  startBtn.addEventListener('click', startInterview);
+  sendBtn.addEventListener('click', sendMessage);
+  messageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+
+  loadCandidates();
+</script>
+
+</body>
+</html>
