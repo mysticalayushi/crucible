@@ -55,23 +55,28 @@ After completing an intensive AI engineering cohort, learners can build the syst
 
 ---
 
-## 📂 Project Structure
+## 📁 Project Structure
 
+```text
 crucible/
 ├── app/
-│ ├── main.py # FastAPI app, /api/interview route, root redirect
-│ ├── llm.py # Groq client — JSON-mode enforced, retry + fallback
-│ ├── prompts.py # Builds the interviewer system prompt from curriculum + candidate data
-│ ├── session_store.py # In-memory per-session conversation state
-│ └── models.py # Pydantic request/response schemas (matches technical spec exactly)
+│   ├── main.py            # FastAPI app, /api/interview route, root redirect
+│   ├── llm.py             # Groq client — JSON-mode enforced, retry + fallback
+│   ├── prompts.py         # Builds the interviewer system prompt from curriculum + candidate data
+│   ├── session_store.py   # In-memory per-session conversation state
+│   └── models.py          # Pydantic request/response schemas
+│
 ├── data/
-│ ├── curriculum.json # 31-day cohort curriculum
-│ └── candidates.json # Candidate mission history and learning signals
+│   ├── curriculum.json    # 31-day cohort curriculum
+│   └── candidates.json    # Candidate mission history and learning signals
+│
 ├── static/
-│ └── index.html # Chat UI — candidate picker, live conversation, feedback panel
-├── PROMPTS.md # Full AI usage log
+│   └── index.html         # Chat UI — candidate picker, live conversation, feedback panel
+│
+├── PROMPTS.md             # Full AI usage log
 ├── requirements.txt
 └── .env.example
+```
 
 ---
 
