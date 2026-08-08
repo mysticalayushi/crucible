@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from app.models import InterviewRequest, InterviewResponse
 from app.session_store import get_or_create
 from app.prompts import build_system_prompt
@@ -8,6 +9,9 @@ from app.llm import call_model
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 app.mount("/data", StaticFiles(directory="data"), name="data")
+@app.get("/")
+def root():
+    return RedirectResponse(url="/static/index.html")
 
 @app.post("/api/interview", response_model=InterviewResponse)
 def interview(req: InterviewRequest):
